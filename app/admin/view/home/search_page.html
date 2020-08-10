@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title></title>
+    <link rel="stylesheet" type="text/css" href="/static/plugins/layui/css/layui.css">
+    <script type="text/javascript" src="/static/plugins/layui/layui.js"></script>
+    <style>
+        .search {
+            width: 100%;
+            height: 400px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+    </style>
+</head>
+<body>
+
+<!--问题输入区-->
+<div class="search">
+    <div class="layui-input-inline">
+        <input name="keywords" class="layui-input" type="text" placeholder="请输入问题关键词" lay-reqtext="不能为空">
+    </div>
+    <button class="layui-btn" onclick="search()">搜索</button>
+</div>
+
+<!--问题展示区-->
+
+
+<script type="text/javascript">
+    layui.use(['element', 'layer'], function () {
+        element = layui.element;
+        $ = layui.jquery;
+        layer = layui.layer;
+    });
+    
+    function search() {
+        var keywords = $.trim($('input[name="keywords"]').val());
+        $.post('/index/home/search', {keywords:keywords}, function (res) {
+            if (res.code>0) {
+                layer.msg(res.msg);
+            } else {
+                setTimeout(function () {
+                    window.location.href="/index/home/search_result";
+                }, 1000);
+            }
+        }, 'json');
+    }
+</script>
+</body>
+</html>

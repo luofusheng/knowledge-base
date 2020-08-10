@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <title></title>
+    <link rel="stylesheet" type="text/css" href="/static/plugins/layui/css/layui.css">
+    <script type="text/javascript" src="/static/plugins/layui/layui.js"></script>
+    <style type="text/css">
+        .header span{background: #009688;margin-left: 30px;padding: 10px;color:#ffffff;}
+        .header div{border-bottom: solid 2px #009688;margin-top: 8px;}
+        .header button{float: right;margin-top: -5px;}
+    </style>
+</head>
+<body style="padding: 10px;">
+<div class="header">
+    <span>文章分类</span>
+    <div></div>
+</div>
+
+{if $backId > 0 }
+<buttn class="layui-btn layui-btn-xs layui-btn-primary" style="float: right; margin: 5px 0" onclick="back({$backId})">返回上级分类</buttn>
+{/if}
+<form class="layui-form">
+    <input type="hidden" name="pid" value="{$backId}">
+    <table class="layui-table">
+        <thead>
+        <tr>
+            <th>ID</th>
+            <th>排序</th>
+            <th>上级分类</th>
+            <th>分类名称</th>
+            <th>操作</th>
+        </tr>
+        </thead>
+        <tbody>
+        {volist name='classes' id='v'}
+        <tr>
+            <td>{$v.class_id}</td>
+            <td style="width: 100px;"><input class="layui-input" type="text" name="ords[{$v.class_id}]" value="{$v.ord}"></td>
+            <td>
+                <select name="parent[{$v.class_id}]">
+                    <option value="0">顶级分类</option>
+                    {volist name="allClass" id="class"}
+                    {if $class.class_id!=$v.class_id}
+                    <option value="{$class.class_id}" {$v.pid==$class.class_id?'selected':''}>{$class.name}</option>
+                    {/if}
+                    {/volist}
+                </select>
+            </td>
+            <td><input type="text" class="layui-input" name="names[{$v.class_id}]" value="{$v.name}">
+            </td>
+            <td>
+                <button type="button" class="layui-btn layui-btn-xs" onclick="child({$v.class_id})">下级分类</button>
+            </td>
+        </tr>
+        {/volist}
+        <tr>
+            <td>添加</td>
+            <td style="width: 100px;"><input type="text" class="layui-input" name="ords[0]"></td>
+            <td></td>
+            <td><input type="text" class="layui-input" name="names[0]"></td>
+            <td></td>
+        </tr>
+        </tbody>
+    </table>
+</form>
+<button class="layui-btn" onclick="save()">保存</button>
+
+<script type="text/javascript">
+
+    layui.use(['layer', 'form'], function(){
+        $ = layui.jquery;
+        layer = layui.layer;
+        form = layui.form;
+    });
+
+    // 子级分类
+    function child(classId) {
+        window.location.href = '/admin/ArticleClass/articleClass/classId/'+classId;
+    }
+
+    // 保存
+    function save() {
+        $.post('/admin/ArticleClass/saveClass', $('form').serialize(), function (res) {
+            if (res.code>0) {
+                layer.msg(res.msg, {icon:2});
+            } else {
+                layer.msg(res.msg, {icon:1});
+                setTimeout(function () {
+                    window.location.reload();
+                }, 1000);
+            }
+        }, 'json');
+    }
+
+    // 返回上级菜单
+    function back(pid) {
+        window.location.href="/admin/ArticleClass/articleClass/pid/"+pid;
+    }
+
+</script>
+
+</body>
+</html>

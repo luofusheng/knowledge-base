@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <title>我的文章</title>
+    <link rel="stylesheet" type="text/css" href="/static/plugins/layui/css/layui.css">
+    <script type="text/javascript" src="/static/plugins/layui/layui.js"></script>
+    <style type="text/css">
+        .header {margin-top: 15px;}
+        .header span{background: #009688;margin-left: 30px;padding: 10px;color:#ffffff;}
+        .header div{border-bottom: solid 2px #009688;margin-top: 8px;}
+        .header button{float: right;margin-top: -5px;}
+    </style>
+</head>
+<body>
+<div class="header">
+    <span>我的文章</span>
+    <button data-src="{:url('admin/MyArticle/addModifyArticle')}" data-articleId="0" class="layui-btn layui-btn-sm" onclick="addModify(this)">添加</button>
+    <div></div>
+</div>
+<table class="layui-table">
+    <thead>
+    <tr>
+        <th>ID</th>
+        <th>文章分类</th>
+        <th>文章标题</th>
+        <th>状态</th>
+        <th>审核</th>
+        <th>添加时间</th>
+        <th>操作</th>
+    </tr>
+    </thead>
+    <tbody>
+    {foreach $pageData['pageRecords'] as $k=>$v}
+    <tr>
+        <td>{$v.article_id}</td>
+        <td>{$article_classes[$v.class_id]['name']}</td>
+        <td>{$v.title}</td>
+        <td>{$v.status==0?'<span style="color: #FFB800;">草稿</span>':'<span style="color: green;">发布</span>'}</td>
+        <td>
+            {switch $v.check }
+                {case 0 }<span style="color: #FFB800;">未审核</span>{/case}
+                {case 1 }<span style="color: #FF5722;">未通过</span>{/case}
+                {case 2 }<span style="color: #5FB878;">审核通过</span>{/case}
+            {/switch}
+        </td>
+        <td>{:$v.add_time>0?date('Y-m-d H:i:s', $v.add_time):''}</td>
+        <td>
+            <button data-src="{:url('admin/MyArticle/addModifyArticle',['articleId'=>$v.article_id])}" data-articleId="{$v.article_id}" class="layui-btn layui-btn-xs layui-btn-warm" onclick="addModify(this)">修改</button>
+            <button class="layui-btn layui-btn-xs layui-btn-danger" onclick="delArticle({$v.article_id})">删除</button>
+        </td>
+    </tr>
+    {/foreach}
+    </tbody>
+</table>
+<div id="pages"></div>
+
+<script type="text/javascript">
+    layui.use(['layer', 'laypage'], function(){
+        layer = layui.layer;
+        laypage = layui.laypage;
+        $ = layui.jquery;
+
+        laypage.render({
+            elem: 'pages'
+            ,limit: {$pageSize}
+            ,count: {$pageData.recordCount} //数据总数，从服务端得到
+            ,curr: {$page}
+            ,jump: function(obj, first){
+                //obj包含了当前分页的所有参数
+                //首次不执行
+                if(!first){
+                    window.location.href = '/admin/MyArticle/myArticle/'+obj.curr;
+                }
+            }
+        });
+    });
+
+    // 添加和修改文章
+    function addModify(article) {
+        let articleId = $(article).attr('data-articleId');
+        let src = $(article).attr('data-src');
+        layer.open({
+            type: 2,
+            title: articleId>0?'编辑文章':'添加文章',
+            shadeClose: true,
+            shade: 0.8,
+            area: ['880px', '660px'],
+            content: src
+        })
+    }
+
+    // 删除文章
+    function delArticle(articleId) {
+        layer.confirm('确定要删除吗？', {
+            icon: 3,
+            btn: ['确定','取消'] //按钮
+        }, function () {
+            $.post('/admin/MyArticle/delArticle', {articleId:articleId}, function (res) {
+                if (res.code>0) {
+                    layer.msg(res.msg, {icon:2});
+                } else {
+                    layer.msg(res.msg, {icon:1});
+                    setTimeout(function () {
+                        window.location.reload();
+                    }, 1000);
+                }
+            }, 'json');
+        });
+    }
+
+</script>
+</body>
+</html>

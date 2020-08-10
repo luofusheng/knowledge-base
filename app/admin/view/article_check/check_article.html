@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <title></title>
+    <link rel="stylesheet" type="text/css" href="/static/plugins/layui/css/layui.css">
+    <script type="text/javascript" src="/static/plugins/layui/layui.js"></script>
+    <style type="text/css">
+        .header {margin-top: 15px;}
+        .header span{background: #009688;margin-left: 30px;padding: 10px;color:#ffffff;}
+        .header div{border-bottom: solid 2px #009688;margin-top: 8px;}
+        .header button{float: right;margin-top: -5px;}
+    </style>
+</head>
+<body>
+<div class="header">
+    <span>文章审核</span>
+    <div></div>
+</div>
+<table class="layui-table">
+    <thead>
+    <tr>
+        <th>ID</th>
+        <th>文章分类</th>
+        <th>文章标题</th>
+        <th>审核</th>
+        <th>添加时间</th>
+        <th>操作</th>
+    </tr>
+    </thead>
+    <tbody>
+    {foreach $pageData['pageRecords'] as $k=>$v}
+    <tr>
+        <td>{$v.article_id}</td>
+        <td>{$article_classes[$v.class_id]['name']}</td>
+        <td>{$v.title}</td>
+        <td>
+            {switch $v.check }
+                {case 0 }<span style="color: #FFB800;">未审核</span>{/case}
+                {case 1 }<span style="color: #FF5722;">未通过</span>{/case}
+            {/switch}
+        </td>
+        <td>{:$v.add_time>0?date('Y-m-d H:i:s', $v.add_time):''}</td>
+        <td>
+            <button class="layui-btn layui-btn-xs layui-btn-warm" onclick="viewArticle({$v.article_id})">查看</button>
+            <button class="layui-btn layui-btn-xs layui-btn-warm" onclick="checkArticle({$v.article_id})">审核</button>
+        </td>
+    </tr>
+    {/foreach}
+    </tbody>
+</table>
+<div id="pages"></div>
+
+<script type="text/javascript">
+    layui.use(['layer', 'laypage'], function(){
+        layer = layui.layer;
+        laypage = layui.laypage;
+        $ = layui.jquery;
+
+        laypage.render({
+            elem: 'pages'
+            ,limit: {$pageSize}
+            ,count: {$pageData.recordCount} //数据总数，从服务端得到
+            ,curr: {$page}
+            ,jump: function(obj, first){
+                //obj包含了当前分页的所有参数
+                //首次不执行
+                if(!first){
+                    window.location.href = '/admin/ArticleCheck/checkArticle/'+obj.curr;
+                }
+            }
+        });
+    });
+
+    // 查看文章
+    function viewArticle(articleId) {
+        layer.open({
+            type: 2,
+            title: '查看文章',
+            shadeClose: true,
+            shade: 0.8,
+            area: ['880px', '660px'],
+            content: '/admin/ArticleCheck/viewArticle/' + articleId
+        })
+    }
+
+    // 审核文章
+    function checkArticle(articleId) {
+        // 询问框
+        layer.confirm('是否通过审核？', {
+            btn: ['是','否'] //按钮
+        }, function(){
+            // 通过审核
+            $.post('/admin/ArticleCheck/passCheck', {articleId:articleId}, function (res) {
+                if (res.code>0) {
+                    layer.msg(res.msg, {icon:2});
+                } else {
+                    layer.msg(res.msg, {icon:1});
+                    setTimeout(function () {
+                        window.location.reload();
+                    }, 1000);
+                }
+            }, 'json');
+        }, function(){
+            // 未通过审核
+            layer.open({
+                type: 2,
+                title: '修改意见',
+                shadeClose: true,
+                shade: 0.8,
+                area: ['380px', '90%'],
+                content: '/admin/ArticleCheck/modifyAdvice/' + articleId //iframe的url
+            });
+        });
+    }
+
+</script>
+</body>
+</html>

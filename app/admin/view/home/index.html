@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <title>知识库系统</title>
+    <link rel="stylesheet" type="text/css" href="/static/plugins/layui/css/layui.css">
+    <script type="text/javascript" src="/static/plugins/layui/layui.js"></script>
+    <style type="text/css">
+        .header {background: #2F4056;height: 60px;}
+        .header .layui-logo {left: 0;top: 0;width: 200px;height: 100%;line-height: 60px;text-align: center;color: black;font-size: 16px;}
+        .search {
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+    </style>
+</head>
+<body>
+
+{// header }
+<div class="header">
+    <div class="layui-logo"><a href="" onclick="backHome()">知识库系统</a></div>
+    <ul class="layui-nav layui-bg-cyan layui-layout-right">
+        <li class="layui-nav-item">
+            <a href="javascript:;" onclick="personalCenter()">欢迎【{$admin.nickname}】</a>
+        </li>
+        <li class="layui-nav-item">
+            <a href="javascript:;" onclick="logout()">退出</a>
+        </li>
+    </ul>
+</div>
+
+{// 问题输入区 }
+<div class="search">
+    <div class="layui-input-inline">
+        <input name="keywords" class="layui-input" type="text" placeholder="请输入问题关键词" lay-reqtext="不能为空">
+    </div>
+    <button class="layui-btn" onclick="search()">搜索</button>
+</div>
+
+<script type="text/javascript">
+    layui.use(['element', 'layer'], function () {
+        element = layui.element;
+        $ = layui.jquery;
+        layer = layui.layer;
+    });
+
+    // 退出登录
+    function logout() {
+        layer.confirm('确定要退出吗？', {
+            icon: 3,
+            btn: ['确定', '取消']
+        }, function () {
+            $.get('logout', function (res) {
+                if (res.code>0) {
+                    layer.msg(res.msg, {'icon':2});
+                } else {
+                    layer.msg(res.msg,{'icon':1});
+                    setTimeout(function () {
+                        window.location.href="login";
+                    }, 1000);
+                }
+            }, 'json');
+        });
+    }
+
+    // 进入个人中心
+    function personalCenter() {
+        window.location.href="personalCenter";
+    }
+
+</script>
+</body>
+</html>
